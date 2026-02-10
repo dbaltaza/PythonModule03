@@ -1,9 +1,10 @@
 import sys
 
-# sys.argv is your argv[] (it's a list)
-# len(sys.argv) is your argc
-# sys.argv[0] is the program name
-# sys.argv[1] is the first argument
+""" sys.argv is your argv[] (it's a list)
+ len(sys.argv) is your argc
+ sys.argv[0] is the program name
+ sys.argv[1] is the first argument """
+
 
 def ft_command_quest(argv):
     print("=== Command Quest ===")
