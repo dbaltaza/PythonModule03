@@ -1,5 +1,6 @@
 import sys
 
+
 def parse_inventory(args):
     inventory = {}
     for arg in args:
@@ -7,6 +8,7 @@ def parse_inventory(args):
             item, qty = arg.split(':', 1)
             inventory[item] = int(qty)
     return inventory
+
 
 def categorize_items(inventory):
     # Only two categories to match sample output
@@ -20,6 +22,7 @@ def categorize_items(inventory):
         else:
             categories['scarce'][item] = qty
     return categories
+
 
 def inventory_report(inventory):
     print("=== Inventory System Analysis ===")
@@ -38,10 +41,18 @@ def inventory_report(inventory):
     if inventory:
         max_qty = max(inventory.values())
         min_qty = min(inventory.values())
-        most_abundant = [item for item, qty in inventory.items() if qty == max_qty]
-        least_abundant = [item for item, qty in inventory.items() if qty == min_qty]
+        most_abundant = [
+            item for item, qty in inventory.items() if qty == max_qty
+        ]
+        least_abundant = [
+            item for item, qty in inventory.items() if qty == min_qty
+        ]
         print(f"Most abundant: {most_abundant[0]} ({max_qty} units)")
-        print(f"Least abundant: {least_abundant[0]} ({min_qty} unit{'s' if min_qty != 1 else ''})")
+        unit_suffix = 's' if min_qty != 1 else ''
+        print(
+            f"Least abundant: {least_abundant[0]} "
+            f"({min_qty} unit{unit_suffix})"
+        )
     else:
         print("Most abundant: N/A")
         print("Least abundant: N/A")
@@ -49,8 +60,10 @@ def inventory_report(inventory):
     print("\n=== Item Categories ===")
     categories = categorize_items(inventory)
     # Print moderate and scarce in order, with formatting to match sample
-    moderate_str = '{' + ','.join([f"'{k}': {v}" for k, v in categories['moderate'].items()]) + '}'
-    scarce_str = '{' + ','.join([f"'{k}': {v}" for k, v in categories['scarce'].items()]) + '}'
+    moderate_items = [f"'{k}': {v}" for k, v in categories['moderate'].items()]
+    scarce_items = [f"'{k}': {v}" for k, v in categories['scarce'].items()]
+    moderate_str = '{' + ','.join(moderate_items) + '}'
+    scarce_str = '{' + ','.join(scarce_items) + '}'
     print(f"Moderate: {moderate_str}")
     print(f"Scarce: {scarce_str}")
 
@@ -58,7 +71,8 @@ def inventory_report(inventory):
     if inventory:
         min_qty = min(inventory.values())
         restock = [item for item, qty in inventory.items() if qty == min_qty]
-        # Print restock list with each item on a new line and comma, matching sample
+        # Print restock list with each item on a new line and comma,
+        # matching sample.
         if len(restock) == 1:
             print(f"Restock needed: ['{restock[0]}']")
         else:
@@ -77,9 +91,11 @@ def inventory_report(inventory):
     print(f"Dictionary values: {values_str}")
     print(f"Sample lookup - 'sword' in inventory: {'sword' in inventory}")
 
+
 def main():
     inventory = parse_inventory(sys.argv[1:])
     inventory_report(inventory)
+
 
 if __name__ == "__main__":
     main()

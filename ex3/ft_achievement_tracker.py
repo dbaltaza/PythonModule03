@@ -1,9 +1,11 @@
-
 def main():
     # Player achievements (using sets for uniqueness)
     alice = {'first_kill', 'level_10', 'treasure_hunter', 'speed_demon'}
     bob = {'first_kill', 'level_10', 'boss_slayer', 'collector'}
-    charlie = {'level_10', 'treasure_hunter', 'boss_slayer', 'speed_demon', 'perfectionist'}
+    charlie = {
+        'level_10', 'treasure_hunter', 'boss_slayer', 'speed_demon',
+        'perfectionist'
+    }
 
     print('=== Achievement Tracker System ===\n')
     print(f"Player alice achievements: {alice}")
@@ -43,4 +45,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
