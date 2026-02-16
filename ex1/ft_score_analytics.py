@@ -1,7 +1,17 @@
 import sys
 
 
-def ft_score_analytics(argv):
+def parse_scores(raw_scores: list[str]) -> list[int]:
+    numeric_scores: list[int] = []
+    for score in raw_scores:
+        try:
+            numeric_scores.append(int(score))
+        except ValueError:
+            raise ValueError(f"Invalid score: {score}") from None
+    return numeric_scores
+
+
+def ft_score_analytics(argv: list[str]) -> None:
     print("=== Player Score Analytics ===")
     scores = argv[1:]
     if not scores:
@@ -11,13 +21,11 @@ def ft_score_analytics(argv):
         )
         return
 
-    numeric_scores = []
-    for score in scores:
-        try:
-            numeric_scores.append(int(score))
-        except ValueError:
-            print(f"Invalid score: {score}")
-            return
+    try:
+        numeric_scores = parse_scores(scores)
+    except ValueError as exc:
+        print(exc)
+        return
 
     total_players = len(numeric_scores)
     total_score = sum(numeric_scores)

@@ -58,11 +58,17 @@ def prime_stream() -> Generator[int, None, None]:
         n += 1
 
 
-def collect_first(stream: Generator[int, None, None], count: int) -> list[int]:
-    collected = []
+def collect_first(
+    stream: Generator[int, None, None],
+    count: int,
+) -> list[int]:
+    collected: list[int] = []
     stream_iter = iter(stream)
     for _ in range(count):
-        collected.append(next(stream_iter))
+        try:
+            collected.append(next(stream_iter))
+        except StopIteration:
+            break
     return collected
 
 
@@ -76,45 +82,48 @@ def join_numbers(values: list[int]) -> str:
 
 
 def main() -> None:
-    total_events = 1000
-    processed = 0
-    high_level_players = 0
-    treasure_events = 0
-    level_up_events = 0
+    try:
+        total_events = 1000
+        processed = 0
+        high_level_players = 0
+        treasure_events = 0
+        level_up_events = 0
 
-    print("=== Game Data Stream Processor ===")
-    print(f"\nProcessing {total_events} game events...\n")
+        print("=== Game Data Stream Processor ===")
+        print(f"\nProcessing {total_events} game events...\n")
 
-    for event in game_event_stream(total_events):
-        processed += 1
-        if processed <= 3:
-            print(
-                f"Event {event['id']}: Player {event['player']} "
-                f"(level {event['level']}) {event['action']}"
-            )
-        elif processed == 4:
-            print("...")
+        for event in game_event_stream(total_events):
+            processed += 1
+            if processed <= 3:
+                print(
+                    f"Event {event['id']}: Player {event['player']} "
+                    f"(level {event['level']}) {event['action']}"
+                )
+            elif processed == 4:
+                print("...")
 
-        if event["level"] >= 10:
-            high_level_players += 1
-        if event["action"] == "found treasure":
-            treasure_events += 1
-        if event["action"] == "leveled up":
-            level_up_events += 1
+            if event["level"] >= 10:
+                high_level_players += 1
+            if event["action"] == "found treasure":
+                treasure_events += 1
+            if event["action"] == "leveled up":
+                level_up_events += 1
 
-    print("\n=== Stream Analytics ===")
-    print(f"Total events processed: {processed}")
-    print(f"High-level players (10+): {high_level_players}")
-    print(f"Treasure events: {treasure_events}")
-    print(f"Level-up events: {level_up_events}")
-    print("\nMemory usage: Constant (streaming)")
-    print(f"Processing time: {total_events * 0.000045:.3f} seconds")
+        print("\n=== Stream Analytics ===")
+        print(f"Total events processed: {processed}")
+        print(f"High-level players (10+): {high_level_players}")
+        print(f"Treasure events: {treasure_events}")
+        print(f"Level-up events: {level_up_events}")
+        print("\nMemory usage: Constant (streaming)")
+        print(f"Processing time: {total_events * 0.000045:.3f} seconds")
 
-    print("\n=== Generator Demonstration ===")
-    fib_first = collect_first(fibonacci_stream(), 10)
-    prime_first = collect_first(prime_stream(), 5)
-    print(f"Fibonacci sequence (first 10): {join_numbers(fib_first)}")
-    print(f"Prime numbers (first 5): {join_numbers(prime_first)}")
+        print("\n=== Generator Demonstration ===")
+        fib_first = collect_first(fibonacci_stream(), 10)
+        prime_first = collect_first(prime_stream(), 5)
+        print(f"Fibonacci sequence (first 10): {join_numbers(fib_first)}")
+        print(f"Prime numbers (first 5): {join_numbers(prime_first)}")
+    except Exception as exc:
+        print(f"Error running data stream: {exc}")
 
 
 if __name__ == "__main__":
