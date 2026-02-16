@@ -1,7 +1,9 @@
 from typing import Generator
 
 
-def game_event_stream(total_events: int) -> Generator[dict[str, int | str], None, None]:
+def game_event_stream(
+    total_events: int,
+) -> Generator[dict[str, int | str], None, None]:
     players = ("alice", "bob", "charlie", "diana", "eve", "frank")
     level_cycle = (5, 12, 8, 3, 11, 7, 2, 10, 6, 4, 13, 9, 1, 14)
 
