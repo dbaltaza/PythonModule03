@@ -9,19 +9,22 @@ import sys
 def ft_command_quest(argv: list[str]) -> None:
     try:
         print("=== Command Quest ===")
-        if not argv:
+        argc = len(argv)
+        if argc == 0:
             print("No arguments provided!")
             print("Total arguments: 0")
             return
-        if len(argv) > 1:
+        if argc > 1:
             print(f"Program name: {argv[0]}")
-            print(f"Arguments received: {len(argv) - 1}")
-            for i, arg in enumerate(argv[1:]):
-                print(f"Argument {i + 1}: {arg}")
+            print(f"Arguments received: {argc - 1}")
+            i = 1
+            while i < argc:
+                print(f"Argument {i}: {argv[i]}")
+                i += 1
         else:
             print("No arguments provided!")
             print(f"Program name: {argv[0]}")
-        print(f"Total arguments: {len(argv)}")
+        print(f"Total arguments: {argc}")
     except (TypeError, IndexError) as exc:
         print(f"Error processing arguments: {exc}")
 

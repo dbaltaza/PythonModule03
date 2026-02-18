@@ -6,13 +6,13 @@ def find_rare_achievements(
 ) -> set[str]:
     rare: set[str] = set()
     for achievement in all_achievements:
-        count = sum(
-            [
-                achievement in alice,
-                achievement in bob,
-                achievement in charlie,
-            ]
-        )
+        count = 0
+        if achievement in alice:
+            count += 1
+        if achievement in bob:
+            count += 1
+        if achievement in charlie:
+            count += 1
         if count == 1:
             rare.add(achievement)
     return rare
@@ -38,12 +38,12 @@ def main() -> None:
 
         print("\n=== Achievement Analytics ===")
         # All unique achievements
-        all_achievements = alice | bob | charlie
+        all_achievements = alice.union(bob).union(charlie)
         print(f"All unique achievements: {all_achievements}")
         print(f"Total unique achievements: {len(all_achievements)}\n")
 
         # Achievements common to all players
-        common_all = alice & bob & charlie
+        common_all = alice.intersection(bob).intersection(charlie)
         print(f"Common to all players: {common_all}")
 
         # Rare achievements (only one player has them)
@@ -53,9 +53,9 @@ def main() -> None:
         print(f"Rare achievements (1 player): {rare}\n")
 
         # Alice vs Bob common and unique
-        alice_bob_common = alice & bob
-        alice_unique = alice - bob
-        bob_unique = bob - alice
+        alice_bob_common = alice.intersection(bob)
+        alice_unique = alice.difference(bob)
+        bob_unique = bob.difference(alice)
         print(f"Alice vs Bob common: {alice_bob_common}")
         print(f"Alice unique: {alice_unique}")
         print(f"Bob unique: {bob_unique}")
