@@ -1,216 +1,157 @@
 import sys
 
 
-DIGIT_MAP: dict[str, int] = {
-    "0": 0,
-    "1": 1,
-    "2": 2,
-    "3": 3,
-    "4": 4,
-    "5": 5,
-    "6": 6,
-    "7": 7,
-    "8": 8,
-    "9": 9,
-}
-
-
-def parse_quantity(text: str) -> int | None:
-    if text == "":
-        return None
+def parse_quantity(text):
+    digits = "0123456789"
     value = 0
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if ch not in DIGIT_MAP:
+    for ch in text:
+        idx = digits.find(ch)
+        if idx == -1:
             return None
-        value = (value * 10) + DIGIT_MAP[ch]
-        i += 1
+        value = value * 10 + idx
     return value
 
 
-def split_item_quantity(arg: str) -> tuple[str, str] | None:
+def add_item(inventory, name, qty):
+    item = inventory.get(name)
+    if item is None:
+        item = dict()
+        item.update({"name": name, "type": "item", "quantity": qty, "value": qty})
+        inventory.update({name: item})
+    else:
+        current = item.get("quantity")
+        new_qty = current + qty
+        item.update({"quantity": new_qty, "value": new_qty})
+
+
+def sort_items_by_qty(items):
     i = 0
-    while i < len(arg):
-        if arg[i] == ":":
-            return arg[:i], arg[i + 1:]
+    n = len(items)
+    while i < n:
+        j = i + 1
+        best = i
+        while j < n:
+            a_name, a_qty = items[j]
+            b_name, b_qty = items[best]
+            if a_qty > b_qty or (a_qty == b_qty and a_name < b_name):
+                best = j
+            j += 1
+        if best != i:
+            items[i], items[best] = items[best], items[i]
         i += 1
-    return None
 
 
-def build_catalog() -> dict[str, dict[str, int | str]]:
-    return {
-        "sword": {"type": "weapon", "value": 50},
-        "potion": {"type": "consumable", "value": 10},
-        "shield": {"type": "armor", "value": 40},
-        "armor": {"type": "armor", "value": 75},
-        "helmet": {"type": "armor", "value": 25},
-    }
+def join_keys(keys_view):
+    result = ""
+    first = True
+    for key in keys_view:
+        if first:
+            result = key
+            first = False
+        else:
+            result = result + ", " + key
+    return result
 
 
-def parse_inventory(args: list[str]) -> dict[str, dict[str, int | str]]:
-    inventory: dict[str, dict[str, int | str]] = {}
-    catalog = build_catalog()
-    for arg in args:
-        parts = split_item_quantity(arg)
-        if parts is None:
+def join_values(inventory):
+    result = ""
+    first = True
+    for _, item in inventory.items():
+        qty = item.get("quantity")
+        if first:
+            result = str(qty)
+            first = False
+        else:
+            result = result + ", " + str(qty)
+    return result
+
+
+def main(argv):
+    inventory = dict()
+    for arg in argv[1:]:
+        if ":" not in arg:
             continue
-        item, qty_text = parts
+        name, qty_text = arg.split(":", 1)
+        if name == "":
+            continue
         qty = parse_quantity(qty_text)
         if qty is None:
-            print(f"Invalid quantity for item '{item}': {qty_text}")
             continue
-        template = catalog.get(item, {"type": "misc", "value": 1})
-        item_data: dict[str, int | str] = {
-            "name": item,
-            "type": template.get("type", "misc"),
-            "value": template.get("value", 1),
-            "quantity": 0,
-        }
-        item_data.update({"quantity": qty})
-        inventory[item] = item_data
-    return inventory
+        add_item(inventory, name, qty)
 
-
-def inventory_report(inventory: dict[str, dict[str, int | str]]) -> None:
-    print("=== Inventory System Analysis ===")
     total_items = 0
-    for data in inventory.values():
-        total_items += data.get("quantity", 0)
-    print(f"Total items in inventory: {total_items}")
-    print(f"Unique item types: {len(inventory)}")
+    for item in inventory.values():
+        total_items += item.get("quantity")
 
-    print("\n=== Current Inventory ===")
-    items_list: list[tuple[str, int]] = []
-    for item, data in inventory.items():
-        items_list.append((item, data.get("quantity", 0)))
-    i = 0
-    while i < len(items_list):
-        max_idx = i
-        j = i + 1
-        while j < len(items_list):
-            if items_list[j][1] > items_list[max_idx][1]:
-                max_idx = j
-            j += 1
-        if max_idx != i:
-            items_list[i], items_list[max_idx] = items_list[max_idx], items_list[i]
-        i += 1
-    for item, qty in items_list:
-        percent = (qty / total_items) * 100 if total_items else 0
-        print(f"{item}: {qty} unit{'s' if qty != 1 else ''} ({percent:.1f}%)")
+    print("=== Inventory System Analysis ===")
+    print("Total items in inventory: " + str(total_items))
+    print("Unique item types: " + str(len(inventory)))
+    print()
+
+    list_items = []
+    for name, item in inventory.items():
+        list_items.append((name, item.get("quantity")))
+
+    sort_items_by_qty(list_items)
+
+    print("=== Current Inventory ===")
+    for name, qty in list_items:
+        percent = 0.0
+        if total_items != 0:
+            percent = (qty * 100.0) / total_items
+        percent_text = "{:.1f}".format(percent)
+        print(name + ": " + str(qty) + " units (" + percent_text + "%)")
+
+    most_name = ""
+    most_qty = -1
+    least_name = ""
+    least_qty = -1
+    for name, qty in list_items:
+        if most_qty == -1 or qty > most_qty:
+            most_qty = qty
+            most_name = name
+        if least_qty == -1 or qty < least_qty:
+            least_qty = qty
+            least_name = name
 
     print("\n=== Inventory Statistics ===")
-    if inventory:
-        max_qty = None
-        min_qty = None
-        most_item = ""
-        least_item = ""
-        for item, data in inventory.items():
-            qty = data.get("quantity", 0)
-            if max_qty is None or qty > max_qty:
-                max_qty = qty
-                most_item = item
-            if min_qty is None or qty < min_qty:
-                min_qty = qty
-                least_item = item
-        if max_qty is not None and min_qty is not None:
-            print(f"Most abundant: {most_item} ({max_qty} units)")
-            unit_suffix = "s" if min_qty != 1 else ""
-            print(
-                f"Least abundant: {least_item} ({min_qty} unit{unit_suffix})"
-            )
+    if most_qty != -1:
+        print("Most abundant: " + most_name + " (" + str(most_qty) + " units)")
+    if least_qty != -1:
+        print("Least abundant: " + least_name + " (" + str(least_qty) + " units)")
+
+    abundant = dict()
+    moderate = dict()
+    scarce = dict()
+    for name, qty in list_items:
+        if qty >= 10:
+            abundant.update({name: qty})
+        elif qty >= 5:
+            moderate.update({name: qty})
         else:
-            print("Most abundant: N/A")
-            print("Least abundant: N/A")
-    else:
-        print("Most abundant: N/A")
-        print("Least abundant: N/A")
+            scarce.update({name: qty})
 
     print("\n=== Item Categories ===")
-    moderate: dict[str, dict[str, int | str]] = {}
-    scarce: dict[str, dict[str, int | str]] = {}
-    for item, data in inventory.items():
-        qty = data.get("quantity", 0)
-        if qty >= 4:
-            moderate[item] = data
-        else:
-            scarce[item] = data
-    moderate_str = "{"
-    first = True
-    for key, value in moderate.items():
-        if not first:
-            moderate_str += ","
-        moderate_str += f"'{key}': {value.get('quantity', 0)}"
-        first = False
-    moderate_str += "}"
-    scarce_str = "{"
-    first = True
-    for key, value in scarce.items():
-        if not first:
-            scarce_str += ","
-        scarce_str += f"'{key}': {value.get('quantity', 0)}"
-        first = False
-    scarce_str += "}"
-    print(f"Moderate: {moderate_str}")
-    print(f"Scarce: {scarce_str}")
+    if len(abundant) > 0:
+        print("Abundant: " + str(abundant))
+    if len(moderate) > 0:
+        print("Moderate: " + str(moderate))
+    if len(scarce) > 0:
+        print("Scarce: " + str(scarce))
+
+    restock = []
+    for name, qty in list_items:
+        if qty <= 1:
+            restock.append(name)
 
     print("\n=== Management Suggestions ===")
-    restock: list[str] = []
-    if inventory:
-        min_qty = None
-        for data in inventory.values():
-            qty = data.get("quantity", 0)
-            if min_qty is None or qty < min_qty:
-                min_qty = qty
-        if min_qty is not None:
-            for item, data in inventory.items():
-                if data.get("quantity", 0) == min_qty:
-                    restock.append(item)
-    if len(restock) == 0:
-        print("Restock needed: []")
-    elif len(restock) == 1:
-        print(f"Restock needed: ['{restock[0]}']")
-    else:
-        restock_str = "["
-        i = 0
-        while i < len(restock):
-            restock_str += "'" + restock[i] + "'"
-            if i < len(restock) - 1:
-                restock_str += ", "
-            i += 1
-        restock_str += "]"
-        print(f"Restock needed: {restock_str}")
+    print("Restock needed: " + str(restock))
 
     print("\n=== Dictionary Properties Demo ===")
-    keys_line = ""
-    first = True
-    for key in inventory.keys():
-        if not first:
-            keys_line += ", "
-        keys_line += key
-        first = False
-    values_line = ""
-    first = True
-    for data in inventory.values():
-        if not first:
-            values_line += ", "
-        values_line += str(data.get("quantity", 0))
-        first = False
-    print(f"Dictionary keys: {keys_line}")
-    print(f"Dictionary values: {values_line}")
-    print(
-        "Sample lookup -'sword' in inventory: "
-        f"{inventory.get('sword') is not None}"
-    )
-
-
-def main() -> None:
-    try:
-        inventory = parse_inventory(sys.argv[1:])
-        inventory_report(inventory)
-    except Exception as exc:
-        print(f"Error running inventory system: {exc}")
+    print("Dictionary keys: " + join_keys(inventory.keys()))
+    print("Dictionary values: " + join_values(inventory))
+    print("Sample lookup - 'sword' in inventory: " + str("sword" in inventory))
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
