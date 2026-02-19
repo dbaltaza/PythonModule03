@@ -1,7 +1,20 @@
+from collections.abc import KeysView
 import sys
+from typing import TypeAlias, TypedDict
 
 
-def parse_quantity(text):
+class InventoryItem(TypedDict):
+    name: str
+    type: str
+    quantity: int
+    value: int
+
+
+Inventory: TypeAlias = dict[str, InventoryItem]
+ItemQty: TypeAlias = tuple[str, int]
+
+
+def parse_quantity(text: str) -> int | None:
     if text == "":
         return None
     digits = "0123456789"
@@ -14,20 +27,22 @@ def parse_quantity(text):
     return value
 
 
-def add_item(inventory, name, qty):
+def add_item(inventory: Inventory, name: str, qty: int) -> None:
     item = inventory.get(name)
     if item is None:
-        item = dict()
-        item.update({"name": name, "type": "item",
-                     "quantity": qty, "value": qty})
-        inventory.update({name: item})
+        inventory[name] = {
+            "name": name,
+            "type": "item",
+            "quantity": qty,
+            "value": qty,
+        }
     else:
-        current = item.get("quantity")
-        new_qty = current + qty
-        item.update({"quantity": new_qty, "value": new_qty})
+        new_qty = item["quantity"] + qty
+        item["quantity"] = new_qty
+        item["value"] = new_qty
 
 
-def sort_items_by_qty(items):
+def sort_items_by_qty(items: list[ItemQty]) -> None:
     i = 0
     n = len(items)
     while i < n:
@@ -44,7 +59,7 @@ def sort_items_by_qty(items):
         i += 1
 
 
-def join_keys(keys_view):
+def join_keys(keys_view: KeysView[str]) -> str:
     result = ""
     first = True
     for key in keys_view:
@@ -56,11 +71,11 @@ def join_keys(keys_view):
     return result
 
 
-def join_values(inventory):
+def join_values(inventory: Inventory) -> str:
     result = ""
     first = True
-    for _, item in inventory.items():
-        qty = item.get("quantity")
+    for item in inventory.values():
+        qty = item["quantity"]
         if first:
             result = str(qty)
             first = False
@@ -69,8 +84,8 @@ def join_values(inventory):
     return result
 
 
-def main(argv):
-    inventory = dict()
+def main(argv: list[str]) -> None:
+    inventory: Inventory = dict()
     for arg in argv[1:]:
         if ":" not in arg:
             continue
@@ -84,16 +99,16 @@ def main(argv):
 
     total_items = 0
     for item in inventory.values():
-        total_items += item.get("quantity")
+        total_items += item["quantity"]
 
     print("=== Inventory System Analysis ===")
     print("Total items in inventory: " + str(total_items))
     print("Unique item types: " + str(len(inventory)))
     print()
 
-    list_items = []
+    list_items: list[ItemQty] = []
     for name, item in inventory.items():
-        list_items.append((name, item.get("quantity")))
+        list_items.append((name, item["quantity"]))
 
     sort_items_by_qty(list_items)
 
@@ -124,9 +139,9 @@ def main(argv):
         print("Least abundant: " + least_name +
               " (" + str(least_qty) + " units)")
 
-    abundant = dict()
-    moderate = dict()
-    scarce = dict()
+    abundant: dict[str, int] = dict()
+    moderate: dict[str, int] = dict()
+    scarce: dict[str, int] = dict()
     for name, qty in list_items:
         if qty >= 10:
             abundant.update({name: qty})
@@ -143,7 +158,7 @@ def main(argv):
     if len(scarce) > 0:
         print("Scarce: " + str(scarce))
 
-    restock = []
+    restock: list[str] = []
     for name, qty in list_items:
         if qty <= 1:
             restock.append(name)
