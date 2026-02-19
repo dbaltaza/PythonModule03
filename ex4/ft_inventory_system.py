@@ -16,7 +16,8 @@ def add_item(inventory, name, qty):
     item = inventory.get(name)
     if item is None:
         item = dict()
-        item.update({"name": name, "type": "item", "quantity": qty, "value": qty})
+        item.update({"name": name, "type": "item",
+                     "quantity": qty, "value": qty})
         inventory.update({name: item})
     else:
         current = item.get("quantity")
@@ -118,7 +119,8 @@ def main(argv):
     if most_qty != -1:
         print("Most abundant: " + most_name + " (" + str(most_qty) + " units)")
     if least_qty != -1:
-        print("Least abundant: " + least_name + " (" + str(least_qty) + " units)")
+        print("Least abundant: " + least_name +
+              " (" + str(least_qty) + " units)")
 
     abundant = dict()
     moderate = dict()
