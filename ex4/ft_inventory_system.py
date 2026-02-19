@@ -2,6 +2,8 @@ import sys
 
 
 def parse_quantity(text):
+    if text == "":
+        return None
     digits = "0123456789"
     value = 0
     for ch in text:
